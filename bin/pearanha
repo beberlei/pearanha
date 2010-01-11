@@ -39,7 +39,7 @@ if (strpos($includeDir, '@php_dir@') !== false) {
 
 set_include_path($includeDir. DIRECTORY_SEPARATOR .get_include_path());
 
-require_once "PHPiranha/Runner/ProjectRunner.php";
+require_once "Pearanha/Runner/ProjectRunner.php";
 
-$runner = new PHPiranha_Runner_ProjectRunner();
+$runner = new Pearanha_Runner_ProjectRunner();
 $runner->run($argv);

@@ -31,7 +31,9 @@
  * @license   http://www.opensource.org/licenses/bsd-license.php New BSD License
  */
 
-class PHPiranha_Runner_ProjectRunner
+require_once "PearRunner.php";
+
+class Pearanha_Runner_ProjectRunner
 {
     /**
      * @param array $argv
@@ -42,7 +44,7 @@ class PHPiranha_Runner_ProjectRunner
             $this->_doRun($argv);
             exit(0);
         } catch(Exception $e) {
-            echo "An error occured: ".$e->getMessage()."\n";
+            echo "An error occured: ".$e->getMessage().PHP_EOL;
             exit(1);
         }
     }
@@ -67,59 +69,86 @@ class PHPiranha_Runner_ProjectRunner
 
     public function runGenerateProject($argv)
     {
-        $projectDir = $this->promptInput('Enter path to existing project root', (isset($_SERVER['PWD'])) ? $_SERVER['PWD'] : '');
-        if (!file_exists($projectDir)) {
-            throw new Exception("Invalid project root directory given, does not exist!");
+        if(!isset($argv[2])) {
+            $projectDir = $this->promptInput('Enter path to new project pear/vendor directory', (isset($_SERVER['PWD'])) ? $_SERVER['PWD'] : '');
+        } else {
+            $projectDir = $argv[2];
         }
-        if (!is_writable($projectDir)) {
-            throw new Exception("Project directory is not writable.");
+        $projectDir = realpath($projectDir);
+        if(!file_exists($projectDir)) {
+            throw new Exception("PEAR/Vendor directory does not exist! Aborting..");
         }
+        $pearConfDir = $projectDir."/.pearrc";
 
-        if (!chdir($projectDir)) {
-            throw new Exception("Could not change to project directory");
+        $config = $this->createConfig($projectDir, $pearConfDir);
+        $binDir = $config->get('bin_dir');
+
+        if(!is_writable(dirname($binDir))) {
+            throw new Exception("Can't write to $projectDir");
         }
-
-        $style = $this->promptInput('Specifiy Project Style (zf, manual)', 'zf');
-        switch($style) {
-            case 'zf':
-                $vendorDir = "vendor";
-                $cacheDir = "temp";
-                $miscDir = "vendor";
-                $binDir = "bin";
-                break;
-            case 'manual':
-                $vendorDir = $this->promptInput('Enter Vendor directory inside project root');
-                $cacheDir = $this->promptInput('Enter PEAR Cache directory inside project root');
-                $miscDir = $this->promptInput('Enter Misc (Tests, Docs, i.e.) directory inside project root');
-                $binDir = $this->promptInput('Enter Bin/Scripts directory inside project root');
-                break;
-            default:
-                throw new Exception("Invalid project style given.");
-        }
-
-        $vendorDir = $projectDir."/".$vendorDir;
-        $cacheDir = $projectDir."/".$cacheDir;
-        $miscDir = $projectDir."/".$miscDir;
-        $binDir = $projectDir."/".$binDir;
-
-        $this->createDirectoryIfNotExists($vendorDir);
-        $this->createDirectoryIfNotExists($cacheDir);
-        $this->createDirectoryIfNotExists($miscDir);
-        $this->createDirectoryIfNotExists($binDir);
+        mkdir($binDir);
 
         $applicationPhpiranaExexutableTemplate = $this->generateExecutableTemplate(array(
-            'VENDOR' => $vendorDir,
-            'CACHE' => $cacheDir,
-            'MISC' => $miscDir,
-            'BIN' => $binDir,
-            'INCLUDEPATH' => realpath(dirname(__FILE__)."/../../")
+            'configfile' => $pearConfDir,
+            'includepath' => realpath(dirname(__FILE__)."/../../"),
         ));
 
-        $executableFile = $binDir."/my_phpiranha";
+        $executableFile = $binDir."/my_pearanha";
         file_put_contents($executableFile, $applicationPhpiranaExexutableTemplate);
         if(!chmod($executableFile, 0700)) {
-            throw new Exception("Could not make my_phpiranha file executable for user.");
+            throw new Exception("Could not make my_pearanha file executable for user.");
         }
+
+        echo 'Successfully created my_pearanha application PEAR installer at "'.$executableFile.'"'.PHP_EOL;
+    }
+
+    private function createConfig($root, $pearConfDir)
+    {
+        $ds2 = DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR;
+        $root = preg_replace(array('!\\\\+!', '!/+!', "!$ds2+!"),
+                             array('/', '/', '/'),
+                            $root);
+        if ($root{0} != '/') {
+            if (!isset($options['windows'])) {
+                throw new Exception('Root directory must be an absolute path beginning ' .
+                    'with "/", was: "' . $root . '"');
+            }
+
+            if (!preg_match('/^[A-Za-z]:/', $root)) {
+                throw new Exception('Root directory must be an absolute path beginning ' .
+                    'with "\\" or "C:\\", was: "' . $root . '"');
+            }
+        }
+
+        $windows = isset($options['windows']);
+        if ($windows) {
+            $root = str_replace('/', '\\', $root);
+        }
+
+        if (!file_exists($pearConfDir) && !@touch($pearConfDir)) {
+            throw new Exception('Could not create "' . $pearConfDir. '"');
+        }
+
+        $config = new PEAR_Config($pearConfDir, '#no#system#config#', false, false);
+        if ($root{strlen($root) - 1} == '/') {
+            $root = substr($root, 0, strlen($root) - 1);
+        }
+
+        $config->noRegistry();
+        $config->set('php_dir', $windows ? "$root\\pear\\php" : "$root/pear/php", 'user');
+        $config->set('data_dir', $windows ? "$root\\pear\\data" : "$root/pear/data");
+        $config->set('www_dir', $windows ? "$root\\pear\\www" : "$root/pear/www");
+        $config->set('cfg_dir', $windows ? "$root\\pear\\cfg" : "$root/pear/cfg");
+        $config->set('ext_dir', $windows ? "$root\\pear\\ext" : "$root/pear/ext");
+        $config->set('doc_dir', $windows ? "$root\\pear\\docs" : "$root/pear/docs");
+        $config->set('test_dir', $windows ? "$root\\pear\\tests" : "$root/pear/tests");
+        $config->set('cache_dir', $windows ? "$root\\pear\\cache" : "$root/pear/cache");
+        $config->set('download_dir', $windows ? "$root\\pear\\download" : "$root/pear/download");
+        $config->set('temp_dir', $windows ? "$root\\pear\\temp" : "$root/pear/temp");
+        $config->set('bin_dir', $windows ? "$root\\pear" : "$root/pear");
+        $config->writeConfigFile();
+
+        return $config;
     }
 
     private function generateExecutableTemplate($placeholders)
@@ -132,7 +161,7 @@ $phpBin
 /**
  * Application specific PEAR installer
  *
- * Code generated by PHPiranha
+ * Code generated by PEARanha
  */
 \$includeDir = "##INCLUDEPATH##";
 if (strpos(\$includeDir, '@php_dir@') !== false) {
@@ -141,37 +170,18 @@ if (strpos(\$includeDir, '@php_dir@') !== false) {
 
 set_include_path(\$includeDir . DIRECTORY_SEPARATOR . get_include_path());
 
-require_once "PHPiranha/Runner/PearRunner.php";
+require_once "Pearanha/Runner/PearRunner.php";
 
-\$env = new PHPiranha_Enviroment(
-    "##VENDOR##",
-    "##BIN##",
-    "##CACHE##",
-    "##MISC##"
-);
-
-\$runner = new PHPiranha_Runner_PearRunner(\$env);
+\$runner = new Pearanha_Runner_PearRunner("##CONFIGFILE##");
 \$runner->run(\$argv);
 EOT;
         foreach ($placeholders AS $p => $v) {
+            $p = strtoupper($p);
             $template = str_replace('##'.$p.'##', $v, $template);
         }
 
 
         return $template;
-    }
-
-    private function createDirectoryIfNotExists($dir)
-    {
-        if (!file_exists($dir)) {
-            if(!is_writable(dirname($dir))) {
-                throw new Exception("Parent Directory '".dirname($dir)."' is not writable or does not exist.");
-            }
-            @mkdir($dir);
-        }
-        if (!is_dir($dir)) {
-            throw new Exception("Could not find and create directory $dir");
-        }
     }
 
     private function promptInput($question, $default = '')

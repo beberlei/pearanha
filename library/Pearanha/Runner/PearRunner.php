@@ -31,8 +31,10 @@
  * @license   http://www.opensource.org/licenses/bsd-license.php New BSD License
  */
 
-// urgs php4 produces so many warnings
-error_reporting(0);
+if (!defined('E_DEPRECATED')) {
+    define('E_DEPRECATED', 0);
+}
+error_reporting( E_ALL & ~(E_NOTICE|E_DEPRECATED) );
 
 require_once 'PEAR.php';
 require_once 'PEAR/Frontend.php';
@@ -40,26 +42,24 @@ require_once 'PEAR/Config.php';
 require_once 'PEAR/Command.php';
 require_once 'Console/Getopt.php';
 
-require_once 'PHPiranha/Enviroment.php';
-
-class PHPiranha_Runner_PearRunner
+class Pearanha_Runner_PearRunner
 {
     /**
      * @var PHPiranha_Enviroment
      */
-    private $_env;
+    private $_pearConfigFile;
 
-    /**
-     * @param PHPiranha_Enviroment $env
-     */
-    public function __construct(PHPiranha_Enviroment $env)
+    private $_allCommands = array();
+
+    public function __construct($pearConf)
     {
-        $this->_env = $env;
+        $this->_pearConfigFile = $pearConf;
     }
 
     public function run($argv)
     {
-        error_reporting(0);
+        error_reporting( E_ALL & ~(E_NOTICE|E_DEPRECATED) );
+
         if (!defined('PEAR_RUNTYPE')) {
             define('PEAR_RUNTYPE', 'pear');
         }
@@ -76,7 +76,7 @@ class PHPiranha_Runner_PearRunner
         $pear_package_version = "1.9.0";
 
         PEAR_Command::setFrontendType('CLI');
-        $all_commands = PEAR_Command::getCommands();
+        $this->_allCommands = PEAR_Command::getCommands();
         $progname = PEAR_RUNTYPE;
         array_shift($argv);
         $options = Console_Getopt::getopt2($argv, "c:C:d:D:Gh?sSqu:vV");
@@ -87,10 +87,9 @@ class PHPiranha_Runner_PearRunner
         $opts = $options[0];
 
         $store_user_config = false;
-        $store_system_config = false;
         $verbose = 1;
 
-        $config = $this->_env->getConfig();
+        $config = PEAR_Config::singleton($this->_pearConfigFile, "#no#system#config#");
 
         $ui = PEAR_Command::getFrontendObject();
         $ui->setConfig($config);
@@ -135,9 +134,6 @@ class PHPiranha_Runner_PearRunner
                 case 's':
                     $store_user_config = true;
                     break;
-                case 'S':
-                    $store_system_config = true;
-                    break;
                 case 'u':
                     $config->remove($param, 'user');
                     break;
@@ -159,16 +155,12 @@ class PHPiranha_Runner_PearRunner
             }
         }
 
-        if ($store_system_config) {
-            $config->store('system');
-        }
-
         if ($store_user_config) {
             $config->store('user');
         }
 
         $command = (isset($options[1][0])) ? $options[1][0] : null;
-        if (empty($command) && ($store_user_config || $store_system_config)) {
+        if (empty($command) && $store_user_config) {
             exit;
         }
         if ($command == 'help') {
@@ -231,7 +223,6 @@ class PHPiranha_Runner_PearRunner
 
     private function usage($error = null, $helpsubject = null)
     {
-        global $progname, $all_commands;
         $stderr = fopen('php://stderr', 'w');
         if (PEAR::isError($error)) {
             fputs($stderr, $error->getMessage() . "\n");
@@ -244,17 +235,17 @@ class PHPiranha_Runner_PearRunner
         } else {
             $put =
                     "Commands:\n";
-            $maxlen = max(array_map("strlen", $all_commands));
+            $maxlen = max(array_map("strlen", $this->_allCommands));
             $formatstr = "%-{$maxlen}s  %s\n";
-            ksort($all_commands);
-            foreach ($all_commands as $cmd => $class) {
+            ksort($this->_allCommands);
+            foreach ($this->_allCommands as $cmd => $class) {
                 $put .= sprintf($formatstr, $cmd, PEAR_Command::getDescription($cmd));
             }
             $put .=
-                    "Usage: $progname [options] command [command-options] <parameters>\n".
-                    "Type \"$progname help options\" to list all options.\n".
-                    "Type \"$progname help shortcuts\" to list all command shortcuts.\n".
-                    "Type \"$progname help <command>\" to get the help for the specified command.";
+                    "Usage: my_pearanha [options] command [command-options] <parameters>\n".
+                    "Type \"my_pearanha help options\" to list all options.\n".
+                    "Type \"my_pearanha help shortcuts\" to list all command shortcuts.\n".
+                    "Type \"my_pearanha help <command>\" to get the help for the specified command.";
         }
         fputs($stderr, "$put\n");
         fclose($stderr);
@@ -263,7 +254,6 @@ class PHPiranha_Runner_PearRunner
 
     private function cmdHelp($command)
     {
-        global $progname, $all_commands, $config;
         if ($command == "options") {
             return
                     "Options:\n".
@@ -295,7 +285,7 @@ class PHPiranha_Runner_PearRunner
 
         } elseif ($help = PEAR_Command::getHelp($command)) {
             if (is_string($help)) {
-                return "$progname $command [options] $help\n";
+                return "my_pearanha $command [options] $help\n";
             }
 
             if ($help[1] === null) {

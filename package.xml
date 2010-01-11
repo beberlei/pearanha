@@ -3,11 +3,11 @@
          http://pear.php.net/dtd/tasks-1.0.xsd
          http://pear.php.net/dtd/package-2.0
          http://pear.php.net/dtd/package-2.0.xsd">
-    <name>PHPiranha</name>
+    <name>Pearanha</name>
     <channel>localhost/pear</channel>
-    <summary>PHPiranha is an application-level PEAR/Pyrus Installer</summary>
+    <summary>Pearanha is an application-level PEAR/Pyrus Installer</summary>
     <description>
-        With PHPiranha you can manage dependencies of your application with the pear or
+        With Pearanha you can manage dependencies of your application with the pear or
         pyrus installers. Framework or library dependencies and their script files will be installed
         into your application directory for easy use with version control systems and
         PHAR deployment.
@@ -18,7 +18,7 @@
         <email>kontakt@beberlei.de</email>
         <active>yes</active>
     </lead>
-    <date>2010-01-09</date>
+    <date>2010-01-10</date>
     <time>16:00:00</time>
     <version>
         <release>0.0.1</release>
@@ -35,14 +35,12 @@
             <dir name="bin/">
                 <file name="phpiranha" role="script" />
             </dir>
-            <dir name="library">
-                <dir name="PHPiranha" baseinstalldir="/">
-                    <dir name="Runner">
-                        <file name="PearRunner.php" role="php" />
-                        <file name="ProjectRunner.php" role="php" />
-                    </dir>
-                    <file name="Enviroment.php" role="php" />
+            <dir name="library/PHPiranha" baseinstalldir="PHPiranha">
+                <dir name="Runner">
+                    <file name="PearRunner.php" role="php" />
+                    <file name="ProjectRunner.php" role="php" />
                 </dir>
+                <file name="Enviroment.php" role="php" />
             </dir>
             <file name="LICENSE" role="doc" />
             <file name="README.markdown" role="doc" />
