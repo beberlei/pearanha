@@ -1,4 +1,4 @@
-#!/usr/bin/env php
+#!@php_bin@
 <?php
 /**
  * Copyright (c) 2010, Benjamin Eberlei
@@ -34,7 +34,7 @@
 
 $includeDir = "@php_dir@";
 if (strpos($includeDir, '@php_dir@') !== false) {
-    $includeDir = realpath(dirname(__FILE__)."/../library/");
+    $includeDir = realpath(dirname(__FILE__)."/");
 }
 
 set_include_path($includeDir. DIRECTORY_SEPARATOR .get_include_path());
