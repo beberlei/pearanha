@@ -13,5 +13,4 @@ $spec = Pearfarm_PackageSpec::create(array(Pearfarm_PackageSpec::OPT_BASEDIR => 
              ->setNotes('Initial release.')
              ->addMaintainer('lead', 'Benjamin Eberlei', 'beberlei', 'kontakt@beberlei.de')
              ->addGitFiles()
-             ->addExecutable('bin/pearanha')
-             ;
+             ->addExecutable('pearanha');
