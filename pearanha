@@ -32,8 +32,8 @@
  * @license   http://www.opensource.org/licenses/bsd-license.php New BSD License
  */
 
-$includeDir = "@php_dir@";
-if (strpos($includeDir, '@php_dir@') !== false) {
+$includeDir = "@pear_directory@";
+if (strpos($includeDir, '@pear_directory@') !== false) {
     $includeDir = realpath(dirname(__FILE__)."/");
 }
 
