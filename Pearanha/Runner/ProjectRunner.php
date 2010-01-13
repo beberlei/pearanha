@@ -137,16 +137,16 @@ class Pearanha_Runner_ProjectRunner
         }
 
         $config->noRegistry();
-        $config->set('php_dir', $windows ? "$root\\php" : "$root/php", 'user');
-        $config->set('data_dir', $windows ? "$root\\data" : "$root/data");
-        $config->set('www_dir', $windows ? "$root\\www" : "$root/www");
-        $config->set('cfg_dir', $windows ? "$root\\cfg" : "$root/cfg");
-        $config->set('ext_dir', $windows ? "$root\\ext" : "$root/ext");
-        $config->set('doc_dir', $windows ? "$root\\docs" : "$root/docs");
-        $config->set('test_dir', $windows ? "$root\\tests" : "$root/tests");
-        $config->set('cache_dir', $windows ? "$root\\cache" : "$root/cache");
-        $config->set('download_dir', $windows ? "$root\\download" : "$root/download");
-        $config->set('temp_dir', $windows ? "$root\\temp" : "$root/temp");
+        $config->set('php_dir', $windows ? "$root" : "$root", 'user');
+        $config->set('data_dir', $windows ? "$root\\pear\\data" : "$root/data");
+        $config->set('www_dir', $windows ? "$root\\pear\\www" : "$root/pear/www");
+        $config->set('cfg_dir', $windows ? "$root\\pear\\cfg" : "$root/pear/cfg");
+        $config->set('ext_dir', $windows ? "$root\\pear\\ext" : "$root/pear/ext");
+        $config->set('doc_dir', $windows ? "$root\\pear\\docs" : "$root/pear/docs");
+        $config->set('test_dir', $windows ? "$root\\pear\\tests" : "$root/pear/tests");
+        $config->set('cache_dir', $windows ? "$root\\pear\\cache" : "$root/pear/cache");
+        $config->set('download_dir', $windows ? "$root\\pear\\download" : "$root/pear/download");
+        $config->set('temp_dir', $windows ? "$root\\pear\\temp" : "$root/pear/temp");
         $config->set('bin_dir', $windows ? "$root\\" : "$root/");
         $config->writeConfigFile();
 
@@ -155,10 +155,8 @@ class Pearanha_Runner_ProjectRunner
 
     private function generateExecutableTemplate($placeholders)
     {
-        $phpBin = (isset($_SERVER['_'])) ? '#!'.$_SERVER['_'] : '';
-
         $template = <<<EOT
-$phpBin
+#!/usr/bin/env php
 <?php
 /**
  * Application specific PEAR installer
