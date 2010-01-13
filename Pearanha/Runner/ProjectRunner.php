@@ -83,10 +83,12 @@ class Pearanha_Runner_ProjectRunner
         $config = $this->createConfig($projectDir, $pearConfDir);
         $binDir = $config->get('bin_dir');
 
-        if(!is_writable(dirname($binDir))) {
-            throw new Exception("Can't write to $projectDir");
+        if (!file_exists($binDir)) {
+            if (!is_writable(dirname($binDir))) {
+                throw new Exception("Can't write to $projectDir");
+            }
+            mkdir($binDir);
         }
-        mkdir($binDir);
 
         $applicationPhpiranaExexutableTemplate = $this->generateExecutableTemplate(array(
             'configfile' => $pearConfDir,
