@@ -93,7 +93,7 @@ class Pearanha_Runner_PearRunner
 
         $ui = PEAR_Command::getFrontendObject();
         $ui->setConfig($config);
-        PEAR::setErrorHandling(PEAR_ERROR_CALLBACK, array($ui, "displayFatalError"));
+        PEAR::setErrorHandling(PEAR_ERROR_CALLBACK, array($this, "throwException"));
         if (ini_get('safe_mode')) {
             $ui->outputData('WARNING: running in safe mode requires that all files created ' .
                     'be the same uid as the current script.  PHP reports this script is uid: ' .
@@ -213,12 +213,6 @@ class Pearanha_Runner_PearRunner
         if ($ok === false) {
             PEAR::raiseError("unknown command `$command'");
         }
-
-        if (PEAR::isError($ok)) {
-            PEAR::setErrorHandling(PEAR_ERROR_CALLBACK, array($ui, "displayFatalError"));
-            PEAR::raiseError($ok);
-        }
-
     }
 
     private function usage($error = null, $helpsubject = null)
@@ -298,4 +292,8 @@ class Pearanha_Runner_PearRunner
         return "Command '$command' is not valid, try '$progname help'";
     }
 
+    public function throwException($message)
+    {
+        throw new Exception($message);
+    }
 }

@@ -31,7 +31,11 @@ class PearanhaChannelTask extends Task
 
     public function main()
     {
-        $runner = new Pearanha_Runner_PearRunner($this->pearConfigFile);
-        $runner->run(array(__FILE__, 'channel-discover', $this->channel));
+        try {
+            $runner = new Pearanha_Runner_PearRunner($this->pearConfigFile);
+            $runner->run(array(__FILE__, 'channel-discover', $this->channel));
+        } catch(Exception $e) {
+            $this->log($e->getMessage());
+        }
     }
 }

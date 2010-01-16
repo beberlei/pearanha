@@ -31,7 +31,11 @@ class PearanhaPackageTask extends Task
 
     public function main()
     {
-        $runner = new Pearanha_Runner_PearRunner($this->pearConfigFile);
-        $runner->run(array(__FILE__, 'install', $this->packageName));
+        try {
+            $runner = new Pearanha_Runner_PearRunner($this->pearConfigFile);
+            $runner->run(array(__FILE__, 'install', $this->packageName));
+        } catch(Exception $e) {
+            $this->log($e->getMessage());
+        }
     }
 }
