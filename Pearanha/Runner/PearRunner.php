@@ -34,13 +34,15 @@
 if (!defined('E_DEPRECATED')) {
     define('E_DEPRECATED', 0);
 }
-error_reporting( E_ALL & ~(E_NOTICE|E_DEPRECATED) );
+$old = error_reporting( 0 );
 
 require_once 'PEAR.php';
 require_once 'PEAR/Frontend.php';
 require_once 'PEAR/Config.php';
 require_once 'PEAR/Command.php';
 require_once 'Console/Getopt.php';
+
+error_reporting($old);
 
 class Pearanha_Runner_PearRunner
 {
@@ -58,7 +60,7 @@ class Pearanha_Runner_PearRunner
 
     public function run($argv)
     {
-        error_reporting( E_ALL & ~(E_NOTICE|E_DEPRECATED) );
+        $old = error_reporting(0);
 
         if (!defined('PEAR_RUNTYPE')) {
             define('PEAR_RUNTYPE', 'pear');
@@ -90,6 +92,7 @@ class Pearanha_Runner_PearRunner
         $verbose = 1;
 
         $config = PEAR_Config::singleton($this->_pearConfigFile, "#no#system#config#");
+        $config->set('verbose', -1); // supress all kind of annoying stuff.
 
         $ui = PEAR_Command::getFrontendObject();
         $ui->setConfig($config);
@@ -213,6 +216,8 @@ class Pearanha_Runner_PearRunner
         if ($ok === false) {
             PEAR::raiseError("unknown command `$command'");
         }
+
+        error_reporting($old);
     }
 
     private function usage($error = null, $helpsubject = null)
