@@ -78,7 +78,7 @@ class Pearanha_Runner_ProjectRunner
         if(!file_exists($projectDir)) {
             throw new Exception("PEAR/Vendor directory does not exist! Aborting..");
         }
-        $pearConfDir = $projectDir."/.pearrc";
+        $pearConfDir = $projectDir . DIRECTORY_SEPARATOR . ".pearrc";
 
         $config = $this->createConfig($projectDir, $pearConfDir);
         $binDir = $config->get('bin_dir');
@@ -92,11 +92,21 @@ class Pearanha_Runner_ProjectRunner
 
         $applicationPhpiranaExexutableTemplate = $this->generateExecutableTemplate(array(
             'configfile' => $pearConfDir,
-            'includepath' => realpath(dirname(__FILE__)."/../../"),
+            'includepath' => realpath(dirname(__FILE__) . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR),
         ));
 
-        $executableFile = $binDir."/my_pearanha";
+        $executableFile = $binDir . DIRECTORY_SEPARATOR . "my_pearanha";
         file_put_contents($executableFile, $applicationPhpiranaExexutableTemplate);
+
+        if ($this->isWindows()) {
+            $executableFile = $binDir . DIRECTORY_SEPARATOR . "my_pearanha.bat";
+
+            $executableBatTemplate  = "@echo off\n".
+            $executableBatTemplate .= 'set PHPBIN="@php_bin@"'."\n";
+            $executableBatTemplate .= '"@php_bin@" "@bin_dir@\pearanha" %*'."\n";
+            file_put_contents($executableFile, $executableBatTemplate);
+        }
+
         if(!chmod($executableFile, 0700)) {
             throw new Exception("Could not make my_pearanha file executable for user.");
         }
@@ -104,9 +114,15 @@ class Pearanha_Runner_ProjectRunner
         echo 'Successfully created my_pearanha application PEAR installer at "'.$executableFile.'"'.PHP_EOL;
     }
 
+    private function isWindows()
+    {
+        return ((substr(PHP_OS, 0,3)) == 'WIN');
+    }
+
     private function createConfig($root, $pearConfDir)
     {
-        $windows = ((substr(PHP_OS, 0,3)) == 'WIN');
+        $windows = $this->isWindows();
+
         $ds2 = DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR;
         $root = preg_replace(array('!\\\\+!', '!/+!', "!$ds2+!"),
                              array('/', '/', '/'),
@@ -156,7 +172,6 @@ class Pearanha_Runner_ProjectRunner
     private function generateExecutableTemplate($placeholders)
     {
         $template = <<<EOT
-#!/usr/bin/env php
 <?php
 /**
  * Application specific PEAR installer
@@ -175,6 +190,11 @@ require_once "Pearanha/Runner/PearRunner.php";
 \$runner = new Pearanha_Runner_PearRunner("##CONFIGFILE##");
 \$runner->run(\$argv);
 EOT;
+
+        if (!$this->isWindows()) {
+            $template = "#!/usr/bin/env php\n".$template;
+        }
+
         foreach ($placeholders AS $p => $v) {
             $p = strtoupper($p);
             $template = str_replace('##'.$p.'##', $v, $template);
