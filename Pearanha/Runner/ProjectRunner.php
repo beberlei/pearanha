@@ -121,6 +121,8 @@ class Pearanha_Runner_ProjectRunner
 
     private function createConfig($root, $pearConfDir)
     {
+        $old = error_reporting(0);
+
         $windows = $this->isWindows();
 
         $ds2 = DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR;
@@ -165,6 +167,8 @@ class Pearanha_Runner_ProjectRunner
         $config->set('temp_dir', $windows ? "$root\\pear\\temp" : "$root/pear/temp");
         $config->set('bin_dir', $windows ? "$root\\" : "$root/");
         $config->writeConfigFile();
+
+        error_reporting($old);
 
         return $config;
     }
