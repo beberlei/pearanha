@@ -6,9 +6,9 @@ $spec = Pearfarm_PackageSpec::create(array(Pearfarm_PackageSpec::OPT_BASEDIR => 
      ->setChannel('beberlei.pearfarm.org')
      ->setSummary('Simple Wrapper for an application-Level PEAR installer')
      ->setDescription('Simple Wrapper for an application-Level PEAR installer')
-     ->setReleaseVersion('0.1.4')
+     ->setReleaseVersion('0.1.5')
      ->setReleaseStability('alpha')
-     ->setApiVersion('0.1.4')
+     ->setApiVersion('0.1.5')
      ->setApiStability('alpha')
      ->setLicense(Pearfarm_PackageSpec::LICENSE_BSD)
      ->setNotes('Next release, now with two phing tasks for channel registering and package installation.')
@@ -17,4 +17,5 @@ $spec = Pearfarm_PackageSpec::create(array(Pearfarm_PackageSpec::OPT_BASEDIR => 
      ->addFilesSimple(array('README.markdown', 'LICENSE'), "doc")
      ->addExcludeFiles(array('.gitignore', 'package.xml', 'pearfarm.spec'))
      ->addExecutable('pearanha')
+     ->addExecutable('pearanha.bat')
      ->setDependsOnPHPVersionMin('5.2.0');
