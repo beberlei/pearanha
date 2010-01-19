@@ -106,12 +106,13 @@ class Pearanha_Runner_ProjectRunner
 
     private function createConfig($root, $pearConfDir)
     {
+        $windows = ((substr(PHP_OS, 0,3)) == 'WIN');
         $ds2 = DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR;
         $root = preg_replace(array('!\\\\+!', '!/+!', "!$ds2+!"),
                              array('/', '/', '/'),
                             $root);
         if ($root{0} != '/') {
-            if (!isset($options['windows'])) {
+            if ($windows) {
                 throw new Exception('Root directory must be an absolute path beginning ' .
                     'with "/", was: "' . $root . '"');
             }
@@ -122,7 +123,6 @@ class Pearanha_Runner_ProjectRunner
             }
         }
 
-        $windows = ((substr(PHP_OS, 0,3)) == 'WIN');
         if ($windows) {
             $root = str_replace('/', '\\', $root);
         }
